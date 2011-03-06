@@ -7,18 +7,17 @@
 
 package edu.wpi.first.wpilibj.templates;
 import edu.wpi.first.wpilibj.IterativeRobot;
-import edu.wpi.first.wpilibj.CANJaguar;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DigitalOutput;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.Ultrasonic;
 import edu.wpi.first.wpilibj.camera.AxisCamera;
-import edu.wpi.first.wpilibj.can.CANTimeoutException;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStationLCD;
 import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.Solenoid;
+import edu.wpi.first.wpilibj.Jaguar;
 import edu.wpi.first.wpilibj.Victor;
 import edu.wpi.first.wpilibj.Encoder;
 /**
@@ -38,7 +37,7 @@ public class RobotTemplate extends IterativeRobot
     Joystick j1 = new Joystick(2);
     Joystick j2 = new Joystick(3);
     Joystick controller = new Joystick(1);
-    CANJaguar fLeft, fRight, bLeft, bRight; //lowerArm, upperArm; //motors
+    Jaguar fLeft, fRight, bLeft, bRight; //lowerArm, upperArm; //motors
     Victor Elbow, Sholder;
     DigitalOutput output; // for ultrasonic
     DigitalInput input;
@@ -86,10 +85,10 @@ public class RobotTemplate extends IterativeRobot
                 upperLimitE = new DigitalInput(12);
                 lowerLimitE = new DigitalInput(13);
 
-                fLeft = new CANJaguar(10); // motors for wheels with CAN ports as arguements
-                fRight = new CANJaguar(4);
-                bLeft = new CANJaguar(9);
-                bRight = new CANJaguar(7);
+                fLeft = new Jaguar(10); // motors for wheels with CAN ports as arguements
+                fRight = new Jaguar(4); //TODO replace all 4 old CAN IDs with PWM channels
+                bLeft = new Jaguar(9);
+                bRight = new Jaguar(7);
                 Sholder = new Victor(1);
                 Elbow = new Victor(3);
 
@@ -161,10 +160,10 @@ public class RobotTemplate extends IterativeRobot
         shifter.set(true);
         try
         {
-            setBreak(fLeft);
-            setBreak(fRight);
-            setBreak(bLeft);
-            setBreak(bRight);
+            //setBreak(fLeft);
+            //setBreak(fRight);
+            //setBreak(bLeft);
+            //setBreak(bRight);
         }
         catch (Exception e)
         {
@@ -278,10 +277,11 @@ public class RobotTemplate extends IterativeRobot
 
          System.out.println(ultraSonic.getRangeMM());
         try{
-        setCoast(fLeft); // set them to drive in coast mode (no sudden brakes)
-        setCoast(fRight);
-        setCoast(bLeft);
-        setCoast(bRight);
+            //TODO broken by not-CAN
+        //setCoast(fLeft); // set them to drive in coast mode (no sudden brakes)
+        //setCoast(fRight);
+        //setCoast(bLeft);
+        //setCoast(bRight);
         //setBreak(lowerArm);
         //setBreak(upperArm);
         }catch (Exception e) {}
@@ -313,18 +313,22 @@ public class RobotTemplate extends IterativeRobot
 
     private void setLefts(double d)
     {
-        try
+        //try
         {
-        fLeft.setX(d);
-        bLeft.setX(d);
+        fLeft.set(d); //TODO current usage of set() for Jaguar is deprecated, dunno how the other one works
+        bLeft.set(d);
 
-        } 
+        }
+        //TODO broken obviously... necessary y/n?
+        /*
         catch (CANTimeoutException e)
         {
             DriverStationLCD lcd = DriverStationLCD.getInstance();
             lcd.println(DriverStationLCD.Line.kMain6, 1, "CAN EXCEPTION");
             lcd.updateLCD();
         }
+         *
+         */
     }
 
     private void updateDS()
@@ -342,22 +346,27 @@ public class RobotTemplate extends IterativeRobot
 
     private void setRights(double d)
     {
-        try{
-        fRight.setX(-d);
-        bRight.setX(-d);
-        } catch (CANTimeoutException e){
+        //try{
+        fRight.set(-d);
+        bRight.set(-d);
+        //TODO yet another CAN exception
+        /*} catch (CANTimeoutException e){
             e.printStackTrace();
             DriverStationLCD lcd = DriverStationLCD.getInstance();
             lcd.println(DriverStationLCD.Line.kMain6, 1, "CAN EXCEPTION!!!");
             lcd.updateLCD();
         }
+           *
+           */
     }
 
-    public void setCoast(CANJaguar jag) throws CANTimeoutException
+    //TODO switching to Jaguar means no modes.
+    /*
+    public void setCoast(Jaguar jag) throws CANTimeoutException
     {//Sets the drive motors to coast mode
-        try{jag.configNeutralMode(CANJaguar.NeutralMode.kCoast);} catch (Exception e) {e.printStackTrace();}
+        try{jag.configNeutralMode(Jaguar.NeutralMode.kCoast);} catch (Exception e) {e.printStackTrace();}
     }
-
+    */
     public void updateComp()
     {
         if (air.getPressureSwitchValue())
@@ -381,11 +390,15 @@ public class RobotTemplate extends IterativeRobot
 
     }
 
+    //TODO once again no modes.
+    /*
      public void setBreak(CANJaguar jag) throws CANTimeoutException
     {//Sets the drive motors to brake mode
         try{jag.configNeutralMode(CANJaguar.NeutralMode.kBrake);} catch (Exception e) {e.printStackTrace();}
     }
 
+     *
+     */
     public double deadzone(double d)
     {//deadzone for input devices
         if (Math.abs(d) < .30) {
@@ -565,6 +578,8 @@ public class RobotTemplate extends IterativeRobot
     {
         if(j1.getRawButton(3) || j2.getRawButton(3))
         {
+            //TODO commented broken stuff out here so it'll drive (probably)
+            /*
            try{
            setBreak(fLeft);
            setBreak(bLeft);
@@ -576,10 +591,12 @@ DriverStationLCD lcd = DriverStationLCD.getInstance();
 lcd.println(DriverStationLCD.Line.kMain6, 1, "Breaking failed");
 lcd.updateLCD();
             return false;
-        }
+        } */
         }
         else if (j1.getRawButton(2) || j2.getRawButton(2))
         {
+            //TODO and again
+            /*
              try{
            setBreak(fLeft);
            setBreak(bLeft);
@@ -590,11 +607,13 @@ lcd.updateLCD();
 DriverStationLCD lcd = DriverStationLCD.getInstance();
 lcd.println(DriverStationLCD.Line.kMain6, 1, "Breaking failed");
 lcd.updateLCD();}
-
+*/
              straight(0);
              return true;
         }
         else {
+            //broken block #3
+            /*
             try{
            setCoast(fLeft);
            setCoast(bLeft);
@@ -605,7 +624,7 @@ lcd.updateLCD();}
 DriverStationLCD lcd = DriverStationLCD.getInstance();
 lcd.println(DriverStationLCD.Line.kMain6, 1, "Breaking failed");
 lcd.updateLCD();
-        }
+        } */
         }
         return false;
     }
